@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/store/useStore";
 import { CreditCard, Truck, CheckCircle } from "lucide-react";
@@ -17,8 +17,13 @@ export default function Checkout() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  useEffect(() => {
+    if (cart.length === 0 && !isSuccess) {
+      router.push("/cart");
+    }
+  }, [cart.length, isSuccess, router]);
+
   if (cart.length === 0 && !isSuccess) {
-    router.push("/cart");
     return null;
   }
 
