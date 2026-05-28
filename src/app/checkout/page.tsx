@@ -22,17 +22,50 @@ export default function Checkout() {
     return null;
   }
 
-  const handlePlaceOrder = (e: React.FormEvent) => {
+  const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
     
-    // Mock processing delay
-    setTimeout(() => {
-      setIsProcessing(false);
+    const formData = new FormData(e.target as HTMLFormElement);
+    const orderData = {
+      firstName: formData.get('firstName'),
+      lastName: formData.get('lastName'),
+      email: formData.get('email'),
+      streetAddress: formData.get('streetAddress'),
+      city: formData.get('city'),
+      zipCode: formData.get('zipCode'),
+      paymentMethod,
+      total: cartTotal,
+      items: cart
+    };
+
+    try {
+      // Hit our Shiprocket API Route
+      const response = await fetch('/api/shiprocket', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderData })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        // We log the error but still place the order locally in a real app, 
+        // for now we just show a toast message
+        console.error("Shiprocket API Error:", result.error);
+        toast.error("Order placed, but courier connection failed.");
+      } else {
+        toast.success("Order placed & Courier assigned! 🔥");
+      }
+
       setIsSuccess(true);
       clearCart();
-      toast.success("Order placed successfully!", { icon: "🔥" });
-    }, 2000);
+    } catch (error) {
+      console.error(error);
+      toast.error("Something went wrong");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   if (isSuccess) {
@@ -82,27 +115,27 @@ export default function Checkout() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-xs uppercase font-bold text-zinc-400">First Name</label>
-                  <input required type="text" className="w-full bg-zinc-950 border border-zinc-800 text-white p-3 focus:outline-none focus:border-neon-green" />
+                  <input name="firstName" required type="text" className="w-full bg-zinc-950 border border-zinc-800 text-white p-3 focus:outline-none focus:border-neon-green" />
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs uppercase font-bold text-zinc-400">Last Name</label>
-                  <input required type="text" className="w-full bg-zinc-950 border border-zinc-800 text-white p-3 focus:outline-none focus:border-neon-green" />
+                  <input name="lastName" required type="text" className="w-full bg-zinc-950 border border-zinc-800 text-white p-3 focus:outline-none focus:border-neon-green" />
                 </div>
                 <div className="space-y-1 md:col-span-2">
                   <label className="text-xs uppercase font-bold text-zinc-400">Email Address</label>
-                  <input required type="email" className="w-full bg-zinc-950 border border-zinc-800 text-white p-3 focus:outline-none focus:border-neon-green" />
+                  <input name="email" required type="email" className="w-full bg-zinc-950 border border-zinc-800 text-white p-3 focus:outline-none focus:border-neon-green" />
                 </div>
                 <div className="space-y-1 md:col-span-2">
                   <label className="text-xs uppercase font-bold text-zinc-400">Street Address</label>
-                  <input required type="text" className="w-full bg-zinc-950 border border-zinc-800 text-white p-3 focus:outline-none focus:border-neon-green" />
+                  <input name="streetAddress" required type="text" className="w-full bg-zinc-950 border border-zinc-800 text-white p-3 focus:outline-none focus:border-neon-green" />
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs uppercase font-bold text-zinc-400">City</label>
-                  <input required type="text" className="w-full bg-zinc-950 border border-zinc-800 text-white p-3 focus:outline-none focus:border-neon-green" />
+                  <input name="city" required type="text" className="w-full bg-zinc-950 border border-zinc-800 text-white p-3 focus:outline-none focus:border-neon-green" />
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs uppercase font-bold text-zinc-400">Postal / Zip Code</label>
-                  <input required type="text" className="w-full bg-zinc-950 border border-zinc-800 text-white p-3 focus:outline-none focus:border-neon-green" />
+                  <input name="zipCode" required type="text" className="w-full bg-zinc-950 border border-zinc-800 text-white p-3 focus:outline-none focus:border-neon-green" />
                 </div>
               </div>
             </div>
